@@ -1,0 +1,15 @@
+com\doctortsab\ai\AIController$AIResponse.class
+com\doctortsab\ai\AIService$1.class
+com\doctortsab\controller\HomeController.class
+com\doctortsab\ai\AIController$AIRequest.class
+com\doctortsab\controller\DoctorController.class
+com\doctortsab\ai\AIService$2.class
+com\doctortsab\config\SecurityConfig.class
+com\doctortsab\config\AIServiceConfig.class
+com\doctortsab\ai\AIService$4.class
+com\doctortsab\ai\AIService.class
+com\doctortsab\DoctortSabApplication.class
+com\doctortsab\ai\AIController.class
+com\doctortsab\ai\AIService$3.class
+com\doctortsab\config\HttpClientConfig.class
+com\doctortsab\model\Doctor.class

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctortSab - Home</title>
+    <link rel="stylesheet" href="css/style.txt">
+</head>
+<body>
+    <header>
+        <h1>Welcome to DoctortSab</h1>
+        <nav>
+            <ul>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="signup.html">Sign Up</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Features</h2>
+            <ul>
+                <li><a href="symptom-check.html">Symptom Check</a></li>
+                <li><a href="first-aid.html">First Aid</a></li>
+                <li><a href="appointment.html">Book an Appointment</a></li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 DoctortSab. All rights reserved.</p>
+    </footer>
+</body>
+</html>

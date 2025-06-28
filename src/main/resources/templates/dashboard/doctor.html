@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="/css/style.txt">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Doctor Dashboard</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard/doctor">Dashboard</a></li>
+                <li><a href="/appointments">My Appointments</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Your Appointments</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Patient Name</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Appointment data will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </section>
+        <section>
+            <h2>Join Video Consultation</h2>
+            <button id="joinCallButton">Join Call</button>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 DoctortSab. All rights reserved.</p>
+    </footer>
+    <script src="path/to/webrtc.js"></script>
+    <script>
+        document.getElementById('joinCallButton').addEventListener('click', function() {
+            // Logic to join the video call using WebRTC
+        });
+    </script>
+</body>
+</html>

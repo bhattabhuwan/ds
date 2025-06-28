@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="/firebase-config.js" type="text/javascript"></script>
+    <script src="/firebase-auth.js" type="text/javascript"></script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+           <h1></h1>
+            <div class="user-profile">
+                <div class="user-account" id="userAccountBtn">
+                    <span id="userName" style="color: #000 !important;">user</span>
+                    <i class="dropdown-arrow">▼</i>
+                </div>
+                <div class="dropdown-menu" id="userDropdown">
+                    <a href="/dashboard/user">Dashboard</a>
+                    <a href="/profile">My Profile</a>
+                    <a href="#" id="logoutBtn">Logout</a>
+                </div>
+            </div>
+        </div>
+        
+    </header>
+    <main>
+        <div class="dashboard-welcome">
+            <h2>Welcome, <span id="welcomeUserName">User</span>!</h2>
+            <p class="dashboard-date">Today is <span id="currentDate"></span></p>
+        </div>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                    <h3>Upcoming Appointments</h3>
+                    <p id="appointmentCount">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🩺</div>
+                <div class="stat-info">
+                    <h3>Last Check-Up</h3>
+                    <p id="lastCheckup">No records</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💊</div>
+                <div class="stat-info">
+                    <h3>Health Score</h3>
+                    <p id="healthScore">Good</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="appointments-container">
+            <div class="appointments-header">
+                <h2 class="appointments-title">Your Appointments</h2>
+                <button class="book-appointment-btn" id="bookAppointmentBtn">
+                    <i class="fas fa-plus"></i> Book New Appointment
+                </button>
+            </div>
+            <div id="appointments-list">
+                <div class="no-appointments">
+                    <div class="no-appointments-icon">📅</div>
+                    <h3>No appointments scheduled</h3>
+                    <p>Book your first appointment with our qualified doctors</p>
+                </div>
+            </div>
+        </div>
+        
+        <section>
+            <h2>Recent Activity</h2>
+            <div id="activity-log">
+                <!-- User activity log will be displayed here -->
+            </div>
+        </section>
+        
+        <section>
+            <h2>Health Resources</h2>
+            <div class="resource-cards">
+                <div class="resource-card" onclick="location.href='/symptom-check'">
+                    <div class="resource-icon">🔍</div>
+                    <h3>Symptom Checker</h3>
+                    <p>Analyze your symptoms and get preliminary diagnosis</p>
+                </div>
+                <div class="resource-card" onclick="location.href='/first-aid'">
+                    <div class="resource-icon">🩹</div>
+                    <h3>First Aid Guide</h3>
+                    <p>Quick access to first aid procedures</p>
+                </div>
+                <div class="resource-card" onclick="location.href='/health-tips'">
+                    <div class="resource-icon">💡</div>
+                    <h3>Health Tips</h3>
+                    <p>Daily wellness and health improvement tips</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Appointment Booking Modal -->
+    <div class="modal-overlay" id="appointmentModal">
+        <div class="booking-modal">
+            <div class="modal-header" style="background: linear-gradient(90deg, #667eea 0%, #5a67d8 100%); color: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <h3 class="modal-title" style="font-weight: 700; letter-spacing: 0.5px;">Book New Appointment</h3>
+                <button class="modal-close" id="closeModal" style="color: #fff; background: transparent; border: none; font-size: 2rem; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 32px 24px 24px 24px;">
+                <!-- Step 1: Doctor Selection -->
+                <div class="booking-step active" id="step1">
+                    <h4 class="step-title" style="color: #5a67d8; font-weight: 600;">Select a Doctor</h4>
+                    <div class="specialization-filter" style="margin-bottom: 20px;">
+                        <select id="specializationFilter" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0; background: #f8f9fa; font-size: 1rem;">
+                            <option value="">All Specializations</option>
+                        </select>
+                    </div>
+                    <div class="doctors-grid" id="doctorsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;"></div>
+                </div>
+                <!-- Step 2: Date & Time Selection -->
+                <div class="booking-step" id="step2">
+                    <h4 class="step-title" style="color: #5a67d8; font-weight: 600;">Select Date & Time</h4>
+                    <div class="selected-doctor-info" id="selectedDoctorInfo" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(90,103,216,0.08);">
+                        <!-- Selected doctor info will be shown here -->
+                    </div>
+                    <div class="date-time-selection" style="display: flex; gap: 32px; flex-wrap: wrap;">
+                        <div class="date-selection">
+                            <h4 style="margin-bottom: 8px; color: #667eea;">Select Date</h4>
+                            <input type="date" id="appointmentDate" class="date-input" min="" style="padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0; background: #f8f9fa; font-size: 1rem;">
+                        </div>
+                        <div class="time-selection">
+                            <h4 style="margin-bottom: 8px; color: #667eea;">Available Times</h4>
+                            <div class="time-slots" id="timeSlots" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <label for="appointmentNotes" style="display: block; margin-bottom: 10px; font-weight: 500; color: #5a67d8;">Additional Notes (Optional)</label>
+                        <textarea id="appointmentNotes" rows="3" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; resize: vertical; background: #f8f9fa; font-size: 1rem;" placeholder="Any specific concerns or requirements..."></textarea>
+                    </div>
+                </div>
+                <!-- Step 3: Confirmation -->
+                <div class="booking-step" id="step3">
+                    <div class="success-message" style="text-align: center;">
+                        <div class="success-icon" style="font-size: 2.5rem; margin-bottom: 10px;">✅</div>
+                        <h3 style="color: #38a169; font-weight: 700;">Appointment Booked Successfully!</h3>
+                        <div class="confirmation-details" id="confirmationDetails" style="margin: 18px 0 10px 0;"></div>
+                        <p style="color: #444;">You will receive a confirmation email shortly.</p>
+                        <button id="goBackBtn" class="btn-secondary" style="margin-top: 18px; background: #667eea; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Go Back</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" id="modalActions" style="display: flex; justify-content: flex-end; gap: 12px; padding: 18px 24px 18px 24px; background: #f8f9fa; border-radius: 0 0 16px 16px; box-shadow: 0 -1px 4px rgba(90,103,216,0.04);">
+                <button class="btn-secondary" id="prevBtn" style="display: none; background: #e2e8f0; color: #5a67d8; border: none; border-radius: 8px; padding: 10px 20px; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Previous</button>
+                <button class="btn-next" id="nextBtn" disabled style="background: linear-gradient(90deg, #667eea 0%, #5a67d8 100%); color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">Select Doctor</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 DoctortSab. All rights reserved.</p>
+    </footer>
+    <script>
+        // Global variables
+        let selectedDoctor = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        let currentStep = 1;
+        let doctors = [];
+        let userAppointments = [];
+
+        // Initialize user dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('User dashboard loaded');
+            
+            // Initialize components
+            initUserDropdown();
+            setUserName();
+            setCurrentDate();
+            setMinDate();
+            fetchUserAppointments();
+            initAppointmentModal();
+            
+            // Load doctors and specializations
+            loadDoctors();
+            loadSpecializations();
+        });
+
+        // Function to initialize user dropdown
+        function initUserDropdown() {
+            const userAccountBtn = document.getElementById('userAccountBtn');
+            const userDropdown = document.getElementById('userDropdown');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            userDropdown.style.display = 'none';
+            
+            userAccountBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (userDropdown.style.display === 'none' || userDropdown.style.display === '') {
+                    showDropdown();
+                } else {
+                    hideDropdown();
+                }
+            });
+            
+            function showDropdown() {
+                userDropdown.style.display = 'block';
+                userAccountBtn.classList.add('active');
+            }
+            
+            function hideDropdown() {
+                userDropdown.style.display = 'none';
+                userAccountBtn.classList.remove('active');
+            }
+            
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (window.firebase && firebase.auth && typeof logoutUser === 'function') {
+                    logoutUser();
+                } else {
+                    window.location.href = '/?logout=success';
+                }
+            });
+            
+            document.addEventListener('click', function(event) {
+                if (userDropdown.style.display === 'block') {
+                    if (!userAccountBtn.contains(event.target) && !userDropdown.contains(event.target)) {
+                        hideDropdown();
+                    }
+                }
+            });
+        }
+        
+        // Function to set user name from Firebase auth
+        function setUserName() {
+            const userNameElement = document.getElementById('userName');
+            const welcomeUserNameElement = document.getElementById('welcomeUserName');
+            
+            if (window.firebase && firebase.auth) {
+                firebase.auth().onAuthStateChanged(function(user) {
+                    if (user) {
+                        const displayName = user.displayName || user.email || "User";
+                        userNameElement.textContent = displayName;
+                        userNameElement.style.color = "#000";
+                        welcomeUserNameElement.textContent = displayName.split(' ')[0];
+                    } else {
+                        userNameElement.textContent = "Guest User";
+                        welcomeUserNameElement.textContent = "Guest";
+                    }
+                });
+            } else {
+                userNameElement.textContent = "John Doe";
+                welcomeUserNameElement.textContent = "John";
+            }
+        }
+        
+        // Set current date in dashboard
+        function setCurrentDate() {
+            const currentDateElement = document.getElementById('currentDate');
+            const date = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateElement.textContent = date.toLocaleDateString('en-US', options);
+        }
+        
+        // Set minimum date for appointment booking
+        function setMinDate() {
+            const dateInput = document.getElementById('appointmentDate');
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.min = tomorrow.toISOString().split('T')[0];
+        }
+    
+        // Fetch user appointments from server
+        function fetchUserAppointments() {
+            const appointmentsDiv = document.getElementById('appointments-list');
+            const appointmentCountElement = document.getElementById('appointmentCount');
+            
+            // For now, show no appointments - replace with actual API call
+            appointmentCountElement.textContent = '0';
+            
+            appointmentsDiv.innerHTML = `
+                <div class="no-appointments">
+                    <div class="no-appointments-icon">📅</div>
+                    <h3>No appointments scheduled</h3>
+                    <p>Book your first appointment with our qualified doctors</p>
+                </div>
+            `;
+        }
+        
+        // Load doctors from Firestore
+        async function loadDoctors() {
+            if (window.firebase && firebase.firestore) {
+                try {
+                    const db = firebase.firestore();
+                    const snapshot = await db.collection('doctors').get();
+                    doctors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    displayDoctors(doctors);
+                } catch (error) {
+                    console.error('Error loading doctors from Firestore:', error);
+                    loadMockDoctors();
+                }
+            } else {
+                // Fallback with mock data if Firestore is not available
+                loadMockDoctors();
+            }
+        }
+        
+        // Fallback mock doctors (only used if Firestore fails)
+        function loadMockDoctors() {
+            doctors = [
+                {
+                    id: 'dr1',
+                    name: 'Dr. Sarah Johnson',
+                    specialization: 'Cardiology',
+                    experience: 12,
+                    hospital: 'City General Hospital',
+                    rating: 4.8
+                },
+                {
+                    id: 'dr2',
+                    name: 'Dr. Michael Chen',
+                    specialization: 'Pediatrics',
+                    experience: 8,
+                    hospital: 'Children\'s Medical Center',
+                    rating: 4.9
+                },
+                {
+                    id: 'dr3',
+                    name: 'Dr. Emily Rodriguez',
+                    specialization: 'Dermatology',
+                    experience: 15,
+                    hospital: 'Skin Care Clinic',
+                    rating: 4.7
+                },
+                {
+                    id: 'dr4',
+                    name: 'Dr. David Kumar',
+                    specialization: 'Orthopedics',
+                    experience: 10,
+                    hospital: 'Bone & Joint Hospital',
+                    rating: 4.6
+                },
+                {
+                    id: 'dr5',
+                    name: 'Dr. Lisa Thompson',
+                    specialization: 'General Practice',
+                    experience: 6,
+                    hospital: 'Community Health Center',
+                    rating: 4.5
+                }
+            ];
+            displayDoctors(doctors);
+        }
+        
+        // Load specializations
+        async function loadSpecializations() {
+            try {
+                const response = await fetch('/api/doctors/specializations');
+                const specializations = await response.json();
+                populateSpecializationFilter(specializations);
+            } catch (error) {
+                console.error('Error loading specializations:', error);
+                // Fallback with mock data
+                const mockSpecs = ['Cardiology', 'Pediatrics', 'Dermatology', 'Orthopedics', 'General Practice'];
+                populateSpecializationFilter(mockSpecs);
+            }
+        }
+        
+        // Populate specialization filter
+        function populateSpecializationFilter(specializations) {
+            const filter = document.getElementById('specializationFilter');
+            specializations.forEach(spec => {
+                const option = document.createElement('option');
+                option.value = spec;
+                option.textContent = spec;
+                filter.appendChild(option);
+            });
+            
+            filter.addEventListener('change', function() {
+                const selectedSpec = this.value;
+                const filteredDoctors = selectedSpec ? 
+                    doctors.filter(doc => doc.specialization === selectedSpec) : 
+                    doctors;
+                displayDoctors(filteredDoctors);
+            });
+        }
+        
+        // Display doctors in grid
+        function displayDoctors(doctorsList) {
+            const grid = document.getElementById('doctorsGrid');
+            grid.innerHTML = '';
+            doctorsList.forEach(doctor => {
+                const doctorCard = document.createElement('div');
+                doctorCard.className = 'doctor-card';
+                doctorCard.dataset.doctorId = doctor.id;
+                doctorCard.style = 'background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(90,103,216,0.10); padding: 18px; cursor: pointer; transition: box-shadow 0.2s, border 0.2s; border: 2px solid transparent;';
+                doctorCard.onmouseover = function() { doctorCard.style.boxShadow = '0 4px 20px rgba(90,103,216,0.18)'; doctorCard.style.border = '2px solid #667eea'; };
+                doctorCard.onmouseout = function() { doctorCard.style.boxShadow = '0 2px 12px rgba(90,103,216,0.10)'; doctorCard.style.border = '2px solid transparent'; };
+                const initials = doctor.name.split(' ').map(n => n[0]).join('');
+                const stars = '★'.repeat(Math.floor(doctor.rating)) + '☆'.repeat(5 - Math.floor(doctor.rating));
+                doctorCard.innerHTML = `
+                    <div class="doctor-info" style="display: flex; align-items: center; gap: 16px;">
+                        <div class="doctor-avatar" style="background: linear-gradient(135deg, #667eea 0%, #5a67d8 100%); color: #fff; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700;">${initials}</div>
+                        <div class="doctor-details">
+                            <h4 style="margin: 0 0 4px 0; color: #222; font-weight: 600;">${doctor.name}</h4>
+                            <div class="doctor-specialization" style="color: #667eea; font-weight: 500;">${doctor.specialization}</div>
+                            <div class="doctor-meta" style="font-size: 0.95rem; color: #666; margin-top: 4px; display: flex; gap: 10px; align-items: center;">
+                                <span>${doctor.experience} yrs exp.</span>
+                                <div class="doctor-rating">
+                                    <span class="rating-stars" style="color: #f6ad55;">${stars}</span>
+                                    <span style="color: #888;">(${doctor.rating})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                doctorCard.addEventListener('click', function() {
+                    selectDoctor(doctor, doctorCard);
+                });
+                grid.appendChild(doctorCard);
+            });
+        }
+        
+        // Select doctor
+        function selectDoctor(doctor, cardElement) {
+            // Remove previous selection
+            document.querySelectorAll('.doctor-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select current doctor
+            cardElement.classList.add('selected');
+            selectedDoctor = doctor;
+            
+            // Enable next button
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = false;
+            nextBtn.textContent = 'Next: Select Date & Time';
+        }
+        
+        // Initialize appointment modal
+        function initAppointmentModal() {
+            const modal = document.getElementById('appointmentModal');
+            const bookBtn = document.getElementById('bookAppointmentBtn');
+            const closeBtn = document.getElementById('closeModal');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const dateInput = document.getElementById('appointmentDate');
+            
+            bookBtn.addEventListener('click', function() {
+                modal.classList.add('show');
+                resetModal();
+            });
+            
+            closeBtn.addEventListener('click', function() {
+                modal.classList.remove('show');
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+            
+            nextBtn.addEventListener('click', function() {
+                if (currentStep === 1 && selectedDoctor) {
+                    goToStep(2);
+                } else if (currentStep === 2 && selectedDate && selectedTime) {
+                    bookAppointment();
+                }
+            });
+            
+            prevBtn.addEventListener('click', function() {
+                if (currentStep === 2) {
+                    goToStep(1);
+                }
+            });
+            
+            dateInput.addEventListener('change', function() {
+                selectedDate = this.value;
+                if (selectedDate) {
+                    loadTimeSlots(selectedDoctor.id, selectedDate);
+                }
+                updateStep2Button();
+            });
+        }
+        
+        // Reset modal to initial state
+        function resetModal() {
+            currentStep = 1;
+            selectedDoctor = null;
+            selectedDate = null;
+            selectedTime = null;
+            
+            goToStep(1);
+            
+            document.querySelectorAll('.doctor-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.getElementById('appointmentDate').value = '';
+            document.getElementById('timeSlots').innerHTML = '';
+            document.getElementById('appointmentNotes').value = '';
+        }
+        
+        // Navigate to specific step
+        function goToStep(step) {
+            currentStep = step;
+            
+            // Hide all steps
+            document.querySelectorAll('.booking-step').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // Show current step
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            // Update buttons
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            
+            if (step === 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.textContent = selectedDoctor ? 'Next: Select Date & Time' : 'Select Doctor';
+                nextBtn.disabled = !selectedDoctor;
+            } else if (step === 2) {
+                prevBtn.style.display = 'block';
+                nextBtn.textContent = 'Book Appointment';
+                updateStep2Button();
+                showSelectedDoctorInfo();
+            } else if (step === 3) {
+                document.getElementById('modalActions').style.display = 'none';
+            }
+        }
+        
+        // Show selected doctor info in step 2
+        function showSelectedDoctorInfo() {
+            const infoDiv = document.getElementById('selectedDoctorInfo');
+            const initials = selectedDoctor.name.split(' ').map(n => n[0]).join('');
+            
+            infoDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="doctor-avatar" style="width: 50px; height: 50px; font-size: 1rem;">${initials}</div>
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;">${selectedDoctor.name}</h4>
+                        <p style="margin: 0; color: #667eea; font-weight: 500;">${selectedDoctor.specialization}</p>
+                        <p style="margin: 0; color: #666; font-size: 0.9rem;">${selectedDoctor.hospital}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Load available time slots
+        async function loadTimeSlots(doctorId, date) {
+            const slotsContainer = document.getElementById('timeSlots');
+            slotsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Loading available times...</div>';
+            
+            try {
+                const response = await fetch(`/api/doctors/${doctorId}/slots?date=${date}`);
+                const slots = await response.json();
+                displayTimeSlots(slots);
+            } catch (error) {
+                console.error('Error loading time slots:', error);
+                // Fallback with mock slots
+                const mockSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+                displayTimeSlots(mockSlots);
+            }
+        }
+        
+        // Display time slots
+        function displayTimeSlots(slots) {
+            const slotsContainer = document.getElementById('timeSlots');
+            slotsContainer.innerHTML = '';
+            
+            slots.forEach(slot => {
+                const slotBtn = document.createElement('button');
+                slotBtn.className = 'time-slot';
+                slotBtn.textContent = slot;
+                slotBtn.style = 'background: #e2e8f0; color: #5a67d8; border: none; border-radius: 8px; padding: 8px 18px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.2s, color 0.2s;';
+                slotBtn.onmouseover = function() { slotBtn.style.background = '#667eea'; slotBtn.style.color = '#fff'; };
+                slotBtn.onmouseout = function() { slotBtn.style.background = '#e2e8f0'; slotBtn.style.color = '#5a67d8'; };
+                slotBtn.addEventListener('click', function() {
+                    selectTimeSlot(slot, slotBtn);
+                });
+                slotsContainer.appendChild(slotBtn);
+            });
+        }
+        
+        // Select time slot
+        function selectTimeSlot(time, slotElement) {
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+            
+            slotElement.classList.add('selected');
+            selectedTime = time;
+            updateStep2Button();
+        }
+        
+        // Update step 2 button state
+        function updateStep2Button() {
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = !(selectedDate && selectedTime);
+        }
+        
+        // Book appointment
+        async function bookAppointment() {
+            const nextBtn = document.getElementById('nextBtn');
+            const originalText = nextBtn.textContent;
+            
+            nextBtn.innerHTML = '<span class="loading-spinner"></span>Booking...';
+            nextBtn.disabled = true;
+            
+            try {
+                const appointmentData = {
+                    doctorId: selectedDoctor.id,
+                    userId: 'current-user-id', // Get from Firebase auth
+                    date: selectedDate,
+                    time: selectedTime,
+                    notes: document.getElementById('appointmentNotes').value
+                };
+                
+                const response = await fetch('/api/appointments/book', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(appointmentData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showConfirmation(result);
+                    fetchUserAppointments(); // Refresh appointments
+                } else {
+                    throw new Error(result.message || 'Failed to book appointment');
+                }
+            } catch (error) {
+                console.error('Error booking appointment:', error);
+                alert('Failed to book appointment. Please try again.');
+                nextBtn.textContent = originalText;
+                nextBtn.disabled = false;
+            }
+        }
+        
+        // Show confirmation message
+        function showConfirmation(result) {
+            const confirmationDetails = document.getElementById('confirmationDetails');
+            confirmationDetails.innerHTML = `
+                <div style="font-size: 1.1rem; color: #333;">
+                    <strong>Doctor:</strong> ${result.doctorName} <br>
+                    <strong>Specialization:</strong> ${result.specialization} <br>
+                    <strong>Date:</strong> ${new Date(result.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} <br>
+                    <strong>Time:</strong> ${result.time} <br>
+                </div>
+            `;
+            goToStep(3);
+        }
+    </script>
+</body>
+</html>

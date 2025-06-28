@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Aid Guide - DoctorSab</title>
+    <link rel="stylesheet" href="/css/style.css">    <style>
+        body {
+            background: linear-gradient(150deg, #f5f7fa 0%, #e4ecfb 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .go-back-btn { 
+            color: #667eea !important; 
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .go-back-btn:hover { 
+            color: #764ba2 !important; 
+            text-decoration: underline;
+            transform: translateX(-3px);
+        }
+          .chat-container { 
+            max-width: 1000px;
+            width: 85%;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.25);
+            padding: 42px 38px 38px 38px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Add a subtle glow effect when input is focused */
+        .chat-container.input-focused {
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.35);
+        }
+        
+        .chat-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .chat-header { 
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            padding-bottom: 20px;
+        }
+        
+        .chat-messages { 
+            min-height: 400px; 
+            max-height: 500px; 
+            overflow-y: auto;
+            margin-bottom: 24px;
+            padding: 20px 16px;
+            background: linear-gradient(135deg, #f8f9fa 80%, #e9eefa 100%);
+            border-radius: 18px;
+            scroll-behavior: smooth;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(102,126,234,0.05);
+            border-radius: 10px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(102,126,234,0.2);
+            border-radius: 10px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(102,126,234,0.3);
+        }
+        
+        .chat-message { 
+            margin-bottom: 18px; 
+            display: flex; 
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chat-message.user { 
+            justify-content: flex-end; 
+        }
+        
+        .chat-bubble { 
+            padding: 16px 22px;
+            border-radius: 20px;
+            max-width: 75%;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            box-shadow: 0 3px 12px rgba(102,126,234,0.12);
+            transition: all 0.2s ease;
+        }
+        
+        .chat-bubble:hover {
+            box-shadow: 0 5px 15px rgba(102,126,234,0.18);
+        }
+        
+        .chat-message.user .chat-bubble { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-bottom-right-radius: 6px;
+        }
+        
+        .chat-message.bot .chat-bubble { 
+            background: #f0f4ff;
+            color: #333;
+            border-bottom-left-radius: 6px;
+            position: relative;
+        }
+        
+        .chat-message.bot .chat-bubble::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.12) 0%, rgba(118,75,162,0.06) 100%);
+            z-index: -1;
+            border-radius: 22px;
+            border-bottom-left-radius: 8px;
+        }
+        
+        /* Custom styling for bot markdown content */
+        .chat-message.bot .chat-bubble h2 {
+            font-size: 1.35rem;
+            margin: 16px 0 12px;
+            color: #4b5563;
+            border-bottom: 1px solid rgba(102,126,234,0.2);
+            padding-bottom: 8px;
+        }
+        
+        .chat-message.bot .chat-bubble h2:first-child {
+            margin-top: 0;
+        }
+        
+        .chat-message.bot .chat-bubble ul,
+        .chat-message.bot .chat-bubble ol {
+            padding-left: 20px;
+            margin: 12px 0;
+        }
+        
+        .chat-message.bot .chat-bubble li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        .chat-message.bot .chat-bubble strong {
+            color: #4338ca;
+            font-weight: 600;
+        }
+        
+        .chat-message.bot .chat-bubble p {
+            margin: 12px 0;
+        }
+        
+        .chat-input-row { 
+            display: flex; 
+            gap: 14px; 
+            margin-top: 18px;
+            position: relative;
+        }
+        
+        .chat-input { 
+            flex: 1; 
+            padding: 16px 20px;
+            border-radius: 16px;
+            border: 2px solid rgba(102,126,234,0.15);
+            font-size: 1.1rem;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.08);
+        }
+        
+        .chat-input:focus { 
+            border: 2px solid #667eea;
+            background: #fff; 
+            outline: none;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.12);
+        }
+        
+        .chat-send-btn { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 0 32px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+        }
+        
+        .chat-send-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .chat-send-btn:disabled { 
+            background: #ccc; 
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .chat-loading { 
+            color: #667eea;
+            font-size: 1.05rem;
+            margin: 16px 0;
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(102,126,234,0.08);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        @media (max-width: 1200px) { 
+            .chat-container { 
+                width: 90%; 
+                max-width: 900px; 
+                padding: 32px 30px 30px 30px;
+            }
+        }
+        
+        @media (max-width: 700px) { 
+            .chat-container { 
+                width: 95%; 
+                margin: 15px auto;
+                padding: 24px 18px 22px 18px; 
+                border-radius: 20px;
+            }
+            
+            .chat-messages {
+                min-height: 350px;
+                max-height: 420px;
+            }
+            
+            .chat-bubble {
+                font-size: 1rem;
+                padding: 14px 18px;
+            }
+            
+            .chat-input {
+                padding: 14px 16px;
+                font-size: 1rem;
+            }
+            
+            .chat-send-btn {
+                padding: 0 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="mainContainer">
+        <div class="chat-header">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <button onclick="window.history.back()" class="go-back-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 8px 12px; display: flex; align-items: center; gap: 6px; border-radius: 10px; transition: all 0.3s ease;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <span>Home</span>
+                </button>
+                
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span id="connectionStatus" style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #4ade80;">
+                        <span class="status-dot" style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%; display: inline-block;"></span>
+                        <span>Connected</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 16px 0 8px;">
+                <h1 style="font-size: 1.8rem; font-weight: 700; color: #4338ca; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l4 4-4 4"/><path d="M12 2l4 4-4 4"/><rect x="2" y="12" width="20" height="8" rx="2"/><path d="M6 16h.01M10 16h8"/></svg>
+                   First Aid Guide
+                </h1>
+                <p style="font-size: 0.95rem; color: #6b7280; margin: 6px 0 0;">Get instant AI-powered first aid instructions in emergency situations</p>
+            </div>
+        </div>        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message bot">
+                <div class="chat-bubble">
+                    <h2>Welcome to DoctorSab First Aid Assistant</h2>
+                    <p>Hi there! 👋 I'm your first aid assistant powered by DeepSeek R1 AI. I can provide emergency guidance for various situations:</p>
+                    <ul>
+                        <li><strong>Minor injuries</strong> - cuts, burns, sprains</li>
+                        <li><strong>Emergency situations</strong> - choking, bleeding, fractures</li>
+                        <li><strong>Step-by-step instructions</strong> for common first aid scenarios</li>
+                    </ul>
+                    <p>Simply describe the situation you're facing, and I'll provide clear instructions to help.</p>
+                    <p><strong>Remember:</strong> For serious emergencies, always call emergency services (911) while providing first aid.</p>
+                </div>
+            </div>
+        </div><form class="chat-input-row" id="chatForm" autocomplete="off">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Describe your emergency or first aid situation..." 
+                required 
+                autofocus
+            />
+            <button type="submit" class="chat-send-btn" id="sendBtn">
+                <span>Send</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </form>
+        
+        <div class="chat-loading" id="chatLoading" style="display:none;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <div class="loading-spinner" style="width: 18px; height: 18px; border: 3px solid rgba(102,126,234,0.2); border-radius: 50%; border-top-color: #667eea; animation: spin 1s linear infinite;"></div>
+                <span>Processing your first aid request with DeepSeek R1...</span>
+            </div>
+            <div style="font-size: 0.8rem; margin-top: 6px; color: #6b7280;">Please wait while AI analyzes your situation</div>
+        </div>
+        
+        <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
+    </div>
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatLoading = document.getElementById('chatLoading');
+        const sendBtn = document.getElementById('sendBtn');        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userMsg = chatInput.value.trim();
+            if (!userMsg) return;
+            addMessage('user', userMsg, false); // User messages don't need markdown
+            chatInput.value = '';
+            chatLoading.style.display = 'block';
+            sendBtn.disabled = true;
+            // Call OpenRouter with DeepSeek R1 model for first aid guidance
+            const botMsg = await getFirstAidResponse(userMsg);
+            addMessage('bot', botMsg, true); // Bot messages use markdown formatting
+            chatLoading.style.display = 'none';
+            sendBtn.disabled = false;
+        });// Simple markdown to HTML converter for first aid instructions
+        function markdownToHtml(markdown) {
+            if (!markdown) return '';
+            
+            // Process headers (## Heading -> <h2>Heading</h2>)
+            let html = markdown.replace(/## (.*?)\n/g, '<h2>$1</h2>\n');
+            
+            // Process bold (**text** -> <strong>text</strong>)
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Process bullet points (- item -> <li>item</li>)
+            html = html.replace(/- (.*?)\n/g, '<li>$1</li>\n');
+            
+            // Process numbered lists (1. item -> <li>item</li>)
+            html = html.replace(/\d+\.\s+(.*?)\n/g, '<li>$1</li>\n');
+            
+            // Wrap lists in <ul> or <ol> tags
+            if (html.includes('<li>')) {
+                html = html.replace(/((<li>.*?<\/li>\n)+)/g, '<ul>$1</ul>');
+            }
+            
+            // Process paragraphs (double newlines as paragraph breaks)
+            html = html.replace(/\n\n/g, '</p><p>');
+            
+            // Wrap entire content in paragraphs if not already
+            if (!html.startsWith('<h') && !html.startsWith('<ul') && !html.startsWith('<p>')) {
+                html = '<p>' + html;
+            }
+            if (!html.endsWith('</p>') && !html.endsWith('</ul>')) {
+                html = html + '</p>';
+            }
+            
+            return html;
+        }
+
+        function addMessage(sender, text, isMarkdown = true) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message ' + sender;
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+            
+            if (isMarkdown && sender === 'bot') {
+                bubble.innerHTML = markdownToHtml(text);
+            } else {
+                bubble.textContent = text;
+            }
+            
+            msgDiv.appendChild(bubble);
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }async function getFirstAidResponse(firstAidText) {            // Direct connection to OpenRouter API using DeepSeek R1
+            const openRouterApiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+            // API key - should be handled securely in production!
+            const apiKey = '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';
+            
+            try {
+                console.log('Sending first aid request to DeepSeek R1:', firstAidText);
+                
+                // Generate a local fallback response in case of API failure
+                const fallbackResponse = `
+For your first aid situation related to "${firstAidText}", here are general guidelines:
+
+1. Assess the situation for safety before approaching
+2. Call emergency services (911) for serious medical emergencies
+3. For minor injuries, clean wounds with soap and water and apply bandages
+4. For burns, run cool (not cold) water over the area
+5. For choking, perform the Heimlich maneuver if you are trained
+6. For unconsciousness, check breathing and pulse, and place person in recovery position
+
+IMPORTANT: This is general information only. Always seek proper medical attention for emergencies.
+`;
+                
+                // Create the message payload for OpenRouter API with DeepSeek R1
+                const messages = [
+                    {
+                        role: "system",
+                        content: "You are a first aid information provider using the DeepSeek R1 model. Provide clear, step-by-step first aid guidance. For serious emergencies, always emphasize calling emergency services first. Be concise and accurate."
+                    },
+                    {
+                        role: "user",
+                        content: `I need first aid information for: ${firstAidText}. Please provide step-by-step guidance.`
+                    }
+                ];
+                
+                const requestBody = {
+                    model: "deepseek/deepseek-r1-0528:free",  // Using DeepSeek R1 0528 free model
+                    messages: messages,
+                    temperature: 0.2,  // Lower temperature for more consistent, factual responses
+                    max_tokens: 1000   // Sufficient tokens for comprehensive first aid instructions
+                };
+                
+                // Make direct call to OpenRouter API using DeepSeek R1
+                console.log('Sending direct request to OpenRouter API with DeepSeek R1...');
+                const response = await fetch(openRouterApiUrl, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "HTTP-Referer": "https://doctortsab.com", 
+                        "X-Title": "DoctorSab First Aid Assistant",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                // Log response details before parsing
+                console.log('OpenRouter API response status:', response.status);
+                
+                // Check if response is ok
+                if (!response.ok) {
+                    console.error('OpenRouter API error status:', response.status);
+                    let errorText = '';
+                    try {
+                        // Try to get more detailed error info as JSON
+                        const errorJson = await response.json();
+                        console.error('OpenRouter API error JSON:', errorJson);
+                        errorText = errorJson.error?.message || 
+                                    errorJson.message || 
+                                    JSON.stringify(errorJson);
+                    } catch (e) {
+                        // Fall back to text if not valid JSON
+                        errorText = await response.text().catch(e => 'Failed to read error response');
+                        console.error('OpenRouter API error text:', errorText);
+                    }
+
+                    // Provide user-friendly error messages based on status code
+                    if (response.status === 401 || response.status === 403) {
+                        return 'Authentication error: The API key may be invalid or expired. Please try again later.';
+                    } else if (response.status === 429) {
+                        return 'Rate limit exceeded: The AI service is experiencing high demand. Please try again in a few minutes.';
+                    }
+                    
+                    return `API error (${response.status}): ${errorText || 'No error details available'}`;
+                }
+                
+                // Read the response body as text
+                let responseText;
+                try {
+                    responseText = await response.text();
+                    console.log('OpenRouter API raw response length:', responseText ? responseText.length : 0);
+                } catch (textErr) {
+                    console.error('Error getting OpenRouter API response text:', textErr);
+                    return 'Failed to read response from OpenRouter API. Please try again.';
+                }
+                
+                // Handle empty responses immediately
+                if (!responseText || responseText.trim() === '') {
+                    console.error('Empty response received from OpenRouter API');
+                    return fallbackResponse;
+                }
+                
+                // Try to parse the JSON response
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('Parsed JSON response:', data);
+                } catch (jsonErr) {
+                    console.error('JSON parsing error:', jsonErr);
+                    console.error('Raw text that failed parsing:', responseText);
+                    
+                    // If parsing fails but we have text, try to use the raw text
+                    if (responseText && responseText.length > 20) {
+                        return responseText;
+                    }
+                    return fallbackResponse;
+                }
+
+                // OpenRouter standard response format check (choices[0].message.content)
+                if (data && data.choices && data.choices.length > 0) {
+                    if (data.choices[0].message && data.choices[0].message.content) {
+                        console.log('Found content in OpenRouter format (choices[0].message.content)');
+                        return data.choices[0].message.content;
+                    }
+                    
+                    // Alternative OpenRouter format (choices[0].text)
+                    if (data.choices[0].text) {
+                        console.log('Found content in OpenRouter format (choices[0].text)');
+                        return data.choices[0].text;
+                    }
+                }
+                
+                // Check for error messages from OpenRouter
+                if (data && data.error) {
+                    console.error('OpenRouter API error:', data.error);
+                    return `Error from AI service: ${data.error.message || JSON.stringify(data.error)}`;
+                }
+                
+                console.error('Could not extract response from data:', data);
+                return fallbackResponse;
+            } catch (err) {
+                console.error('Error calling OpenRouter API:', err);
+                return `Error: ${err.message}. Please try again later.`;            }
+        }
+        
+        // Add connection status indicator functionality
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusDot = connectionStatus.querySelector('.status-dot');
+        
+        function updateConnectionStatus(isOnline) {
+            if (isOnline) {
+                statusDot.style.background = '#4ade80';
+                connectionStatus.querySelector('span:last-child').textContent = 'Connected';
+            } else {
+                statusDot.style.background = '#f87171';
+                connectionStatus.querySelector('span:last-child').textContent = 'Offline';
+            }
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => updateConnectionStatus(true));
+        window.addEventListener('offline', () => updateConnectionStatus(false));
+        
+        // Check initial status
+        updateConnectionStatus(navigator.onLine);
+        
+        // Add some visual feedback when focusing on input
+        chatInput.addEventListener('focus', () => {
+            document.getElementById('mainContainer').classList.add('input-focused');
+        });
+        
+        chatInput.addEventListener('blur', () => {
+            document.getElementById('mainContainer').classList.remove('input-focused');
+        });
+        
+        // Add keyboard shortcut (Ctrl+Enter) to send message
+        chatInput.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                if (chatInput.value.trim()) {
+                    chatForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+    </script>
+    
+    <footer style="text-align: center; margin-top: 20px; color: #6b7280; font-size: 0.85rem; max-width: 900px; margin-left: auto; margin-right: auto; padding: 0 20px 30px;">
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #4338ca;">Important Medical Disclaimer:</strong> The information provided by this AI assistant is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </div>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 16px; flex-wrap: wrap;">
+            <a href="/symptom-check.html" style="color: #667eea; text-decoration: none; font-weight: 500;">Symptom Checker</a>
+            <a href="/health-tips.html" style="color: #667eea; text-decoration: none; font-weight: 500;">Health Tips</a>
+            <a href="/appointment.html" style="color: #667eea; text-decoration: none; font-weight: 500;">Book Appointment</a>
+            <a href="#" onclick="window.location.reload()" style="color: #667eea; text-decoration: none; font-weight: 500;">Refresh Assistant</a>
+        </div>
+    </footer>
+</body>
+</html>

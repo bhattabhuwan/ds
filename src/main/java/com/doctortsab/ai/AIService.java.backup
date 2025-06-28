@@ -1,0 +1,290 @@
+package com.doctortsab.ai;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.doctortsab.config.AIServiceConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+ * Service for handling AI-related operations with OpenRouter API
+ */
+@Service
+public class AIService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AIService.class);
+    private static final String AI_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
+    
+    @Autowired
+    private AIServiceConfig aiConfig;
+    
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    /**
+     * Process text with AI using OpenRouter API
+     * @param prompt The input prompt
+     * @return The AI response or error message
+     */
+    public String processWithAI(String prompt) {
+        logger.info("Processing AI request with prompt: {}", prompt);
+        
+        try {
+            // Get API key
+            String apiKey = aiConfig.getApiKey();
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                logger.error("API key is missing");
+                return "Error: API key is missing or empty.";
+            }
+              // Set up headers - using the exact headers required by OpenRouter
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+            
+            // Required headers for OpenRouter
+            headers.set("HTTP-Referer", "https://doctortsab.com"); 
+            headers.set("X-Title", "DoctorSab Healthcare Assistant");
+            
+            // Add OpenRouter specific headers
+            headers.set("User-Agent", "DoctorSab/1.0");
+            headers.set("Accept", "application/json");
+            
+            // Set up message
+            Map<String, String> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", prompt);
+            
+            List<Map<String, String>> messages = new ArrayList<>();
+            messages.add(message);            // Set up request body with optimized parameters for OpenRouter
+            Map<String, Object> requestBody = new HashMap<>();
+            
+            // Use a more guaranteed model - anthropic/claude-instant-v1 is often more reliable
+            requestBody.put("model", "anthropic/claude-instant-v1");
+            
+            // Add messages and core parameters
+            requestBody.put("messages", messages);
+            requestBody.put("temperature", 0.5); // Slightly lower for more deterministic response
+            requestBody.put("max_tokens", 800); // Increase token limit for better responses
+            requestBody.put("stream", false); 
+            
+            // Add reliable conversation parameters
+            requestBody.put("top_p", 0.9);
+            requestBody.put("frequency_penalty", 0);
+            requestBody.put("presence_penalty", 0); 
+            
+            // Add a route preference for routing reliability
+            requestBody.put("transforms", new String[]{"middle-out"});
+              // Log the request details for debugging
+            logger.info("Sending request to OpenRouter API: {}", AI_API_URL);
+            logger.debug("Request body: {}", jsonMapper.writeValueAsString(requestBody));
+            
+            // Send request
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            
+            // Log headers for debugging
+            logger.debug("Request headers: {}", headers.toString());            // Use String response type for better debugging
+            logger.info("Sending OpenRouter API request...");
+            try {
+                // Get response as a String for complete debugging
+                ResponseEntity<String> stringResponse = restTemplate.postForEntity(
+                    AI_API_URL,
+                    entity,
+                    String.class
+                );
+                
+                // If we got a string response, convert to Map
+                if (stringResponse.getBody() != null && !stringResponse.getBody().isEmpty()) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> responseMap = jsonMapper.readValue(stringResponse.getBody(), Map.class);
+                    responseEntity = new ResponseEntity<>(responseMap, stringResponse.getHeaders(), stringResponse.getStatusCode());
+                    
+                    // Log full string response for debugging
+                    String responseBody = stringResponse.getBody();
+                    logger.info("Raw string response received (first 200 chars): {}", 
+                        responseBody.length() > 200 ? responseBody.substring(0, 200) + "..." : responseBody);
+                } else {
+                    // Fall back to default approach
+                    logger.warn("Empty string response, falling back to Map response type");
+                    responseEntity = restTemplate.postForEntity(
+                        AI_API_URL,
+                        entity,
+                        Map.class
+                    );
+                }
+            } catch (Exception e) {
+                logger.warn("Error getting response as string: {}. Falling back to Map response type", e.getMessage());
+                responseEntity = restTemplate.postForEntity(
+                    AI_API_URL,
+                    entity,
+                    Map.class
+                );
+            }
+              // Process response - add more detailed logging
+            logger.info("Response received from OpenRouter API with status: {}", responseEntity.getStatusCode());
+            
+            // Add extra debugging for raw response
+            logger.info("Raw response headers: {}", responseEntity.getHeaders());
+            try {
+                Object rawBody = responseEntity.getBody();
+                logger.info("Raw response body type: {}", (rawBody != null ? rawBody.getClass().getName() : "null"));
+                if (rawBody != null) {
+                    logger.info("Raw response body toString: {}", rawBody.toString());
+                } else {
+                    logger.warn("Response body is null");
+                }
+            } catch (Exception e) {
+                logger.error("Error examining raw response", e);
+            }
+              // Safely cast the response body
+            @SuppressWarnings("unchecked")
+            Map<String, Object> responseBody = (Map<String, Object>) responseEntity.getBody();
+            
+            if (responseBody == null) {
+                logger.error("Received null response body from OpenRouter API");
+                return "Error: Received empty response from AI service.";
+            }
+            
+            // Log full response for debugging
+            logger.info("Response body received from OpenRouter API");            try {
+                String responseJson = jsonMapper.writeValueAsString(responseBody);
+                logger.debug("Response body JSON: {}", responseJson);
+                
+                // Log response size
+                logger.info("Response size: {} characters", responseJson.length());
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                logger.warn("Could not serialize response body for logging due to JSON processing error", e);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Could not serialize response body for logging due to invalid argument", e);
+            }
+              // Extract content from response
+            if (responseBody.containsKey("choices") && responseBody.get("choices") instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Object> choices = (List<Object>) responseBody.get("choices");
+                
+                if (choices != null && !choices.isEmpty()) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> choice = (Map<String, Object>) choices.get(0);
+                    
+                    if (choice.containsKey("message")) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> messageObj = (Map<String, Object>) choice.get("message");
+                        
+                        if (messageObj.containsKey("content")) {
+                            String content = (String) messageObj.get("content");
+                            logger.info("Successfully received AI response");
+                            return content;
+                        }
+                    }
+                }
+            }
+              // Handle error in response
+            if (responseBody.containsKey("error")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> error = (Map<String, Object>) responseBody.get("error");
+                String errorMessage = error.containsKey("message") ? (String) error.get("message") : "Unknown error";
+                logger.error("API error: {}", errorMessage);
+                return "Error from AI service: " + errorMessage;
+            }
+            
+            logger.error("Could not extract content from response");
+            return "Could not extract a valid response from the AI service.";
+              } catch (org.springframework.web.client.RestClientException e) {
+            logger.error("Error communicating with AI service", e);
+            return "Error: Unable to connect to AI service: " + e.getMessage();
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            logger.error("Error processing JSON", e);
+            return "Error: Unable to process data: " + e.getMessage();
+        } catch (Exception e) {
+            logger.error("Unexpected error in AI service", e);
+            return "Error: An unexpected error occurred: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * Test direct connection to OpenRouter API
+     * @return Test result or error message
+     */
+    public String testOpenRouterConnection() {
+        logger.info("Testing direct connection to OpenRouter API");
+        
+        try {
+            // Get API key
+            String apiKey = aiConfig.getApiKey();
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                logger.error("API key is missing for test");
+                return "Error: API key is missing or empty.";
+            }
+            
+            // Set up simplified test headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+            headers.set("HTTP-Referer", "https://doctortsab.com");
+            
+            // Set up simple test message
+            List<Map<String, String>> messages = new ArrayList<>();
+            Map<String, String> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", "Say hello");
+            messages.add(message);
+            
+            // Set up minimal request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "openai/gpt-3.5-turbo");
+            requestBody.put("messages", messages);
+            requestBody.put("max_tokens", 150);
+            requestBody.put("stream", false);
+            
+            // Send test request
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            logger.info("Sending test request to OpenRouter API");
+            
+            ResponseEntity<?> response = restTemplate.postForEntity(
+                AI_API_URL,
+                entity,
+                String.class  // Trying to get raw response as string instead
+            );
+              // Log response details
+            logger.info("Test response status: {}", response.getStatusCode());
+            logger.info("Test response body: {}", response.getBody());// Safely get response body length with complete null checking
+            String bodyLength = "null";
+            if (response.getBody() != null) {
+                Object body = response.getBody();
+                if (body != null) {
+                    String bodyStr = body.toString();
+                    if (bodyStr != null) {
+                        bodyLength = String.valueOf(bodyStr.length());
+                    } else {
+                        bodyLength = "0 (null toString)";
+                    }
+                }
+            }
+            
+            return "Test successful. Status: " + response.getStatusCode() + 
+                   ", Body length: " + bodyLength;
+            
+        } catch (org.springframework.web.client.RestClientException e) {
+            logger.error("REST API connection error", e);
+            return "Test failed due to API connection error: " + e.getMessage();
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid argument error during API test", e);
+            return "Test failed due to invalid parameter: " + e.getMessage();
+        } catch (Exception e) {
+            logger.error("Unexpected error in API test connection", e);
+            return "Test failed with unexpected error: " + e.getClass().getName() + ": " + e.getMessage();
+        }
+    }
+}

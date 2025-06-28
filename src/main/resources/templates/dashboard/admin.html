@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.txt">
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard/user">User Dashboard</a></li>
+                <li><a href="/dashboard/doctor">Doctor Dashboard</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>User Analytics</h2>
+            <div id="user-analytics">
+                <p>Total Users: <span id="total-users"></span></p>
+                <p>Last Online: <span id="last-online"></span></p>
+                <p>Joined On: <span id="joined-on"></span></p>
+            </div>
+            <canvas id="user-chart"></canvas>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 DoctortSab. All rights reserved.</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // JavaScript to fetch user analytics and render charts
+        async function fetchUserAnalytics() {
+            // Fetch user data from the server
+            const response = await fetch('/api/admin/user-analytics');
+            const data = await response.json();
+            document.getElementById('total-users').innerText = data.totalUsers;
+            document.getElementById('last-online').innerText = data.lastOnline;
+            document.getElementById('joined-on').innerText = data.joinedOn;
+
+            // Render chart
+            const ctx = document.getElementById('user-chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'User Activity',
+                        data: data.activityData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        fetchUserAnalytics();
+    </script>
+</body>
+</html>

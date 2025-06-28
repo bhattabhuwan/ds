@@ -1,0 +1,226 @@
+/* Auth UI Styles */
+.auth-message {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.auth-message.error {
+  background-color: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+}
+
+.auth-message.success {
+  background-color: rgba(62, 175, 124, 0.1);
+  color: #3eaf7c;
+  border: 1px solid #3eaf7c;
+}
+
+.auth-message.info {
+  background-color: rgba(42, 125, 225, 0.1);
+  color: #2A7DE1;
+  border: 1px solid #2A7DE1;
+}
+
+/* Button States */
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.social-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.social-btn i {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.social-btn.google {
+  color: #4285F4;
+  border-color: #4285F4;
+}
+
+.social-btn.google:hover {
+  background-color: #4285F4;
+  color: white;
+}
+
+.social-btn.google:disabled {
+  background-color: #f5f5f5;
+  border-color: #ddd;
+  color: #888;
+}
+
+/* User Account Styles */
+.user-account {
+  display: flex;
+  align-items: center;
+  margin-left: 15px;
+  padding: 5px;
+  border-radius: 30px;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.user-account:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--light-bg);
+  border: 2px solid var(--primary-color);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-name {
+  margin: 0 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--white);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-logout {
+  background: transparent;
+  color: var(--white);
+  font-size: 16px;
+  padding: 5px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  color: var(--accent-color);
+}
+
+/* Password strength indicator */
+.password-strength {
+  height: 4px;
+  margin-top: 5px;
+  transition: all 0.3s ease;
+}
+
+.password-strength.weak {
+  background-color: #ff6b6b;
+  width: 30%;
+}
+
+.password-strength.medium {
+  background-color: #ffa502;
+  width: 60%;
+}
+
+.password-strength.strong {
+  background-color: #3eaf7c;
+  width: 100%;
+}
+
+/* Doctor fields animation */
+.doctor-fields {
+  transition: all 0.3s ease;
+  overflow: hidden;
+  max-height: 0;
+}
+
+.doctor-fields.show {
+  max-height: 200px;
+  margin-top: 15px;
+}
+
+/* Role selection styles */
+.role-selection {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.role-option {
+  flex: 1;
+}
+
+.role-option input[type="radio"] {
+  display: none;
+}
+
+.role-option label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ultra-light-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.role-option label i {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--light-text);
+  transition: all 0.3s ease;
+}
+
+.role-option input[type="radio"]:checked + label {
+  border-color: var(--primary-color);
+  background-color: rgba(42, 125, 225, 0.05);
+}
+
+.role-option input[type="radio"]:checked + label i,
+.role-option input[type="radio"]:checked + label span {
+  color: var(--primary-color);
+}
+
+/* Firebase Firestore Console Button */
+.firestore-btn {
+  margin-top: 15px;
+  background-color: #039be5; /* Firebase blue */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.firestore-btn:hover {
+  background-color: #0277bd; /* Darker Firebase blue */
+}
+
+.firestore-btn i {
+  margin-right: 8px;
+  font-size: 16px;
+}

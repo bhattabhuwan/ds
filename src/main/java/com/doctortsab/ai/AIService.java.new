@@ -1,0 +1,134 @@
+package com.doctortsab.ai;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.doctortsab.config.AIServiceConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Service for handling AI-related operations with OpenRouter API
+ */
+@Service
+public class AIService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AIService.class);
+    private static final String AI_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
+    
+    @Autowired
+    private AIServiceConfig aiConfig;
+    
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    /**
+     * Process text with AI using OpenRouter API
+     * @param prompt The input prompt
+     * @return The AI response or error message
+     */
+    public String processWithAI(String prompt) {
+        logger.info("Processing AI request with prompt: {}", prompt);
+        
+        try {
+            // Get API key
+            String apiKey = aiConfig.getApiKey();
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                logger.error("API key is missing");
+                return "Error: API key is missing or empty.";
+            }
+            
+            // Set up headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+            headers.set("HTTP-Referer", "https://doctortsab.com");
+            headers.set("X-Title", "DoctorSab Healthcare Assistant");
+            
+            // Set up message
+            Map<String, String> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", prompt);
+            
+            List<Map<String, String>> messages = new ArrayList<>();
+            messages.add(message);
+            
+            // Set up request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "openai/gpt-3.5-turbo");
+            requestBody.put("messages", messages);
+            requestBody.put("temperature", 0.7);
+            requestBody.put("max_tokens", 500);
+            
+            // Log the request details for debugging
+            logger.debug("Sending request to OpenRouter API: {}", AI_API_URL);
+            logger.debug("Request body: {}", jsonMapper.writeValueAsString(requestBody));
+            
+            // Send request
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                AI_API_URL,
+                entity,
+                Map.class
+            );
+            
+            // Process response
+            logger.debug("Response status: {}", response.getStatusCode());
+            Map<String, Object> responseBody = response.getBody();
+            
+            if (responseBody == null) {
+                logger.error("Received null response body");
+                return "Error: Received empty response from API.";
+            }
+            
+            logger.debug("Response body: {}", jsonMapper.writeValueAsString(responseBody));
+            
+            // Extract content from response
+            if (responseBody.containsKey("choices") && responseBody.get("choices") instanceof List) {
+                List<Object> choices = (List<Object>) responseBody.get("choices");
+                
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> choice = (Map<String, Object>) choices.get(0);
+                    
+                    if (choice.containsKey("message")) {
+                        Map<String, Object> messageObj = (Map<String, Object>) choice.get("message");
+                        
+                        if (messageObj.containsKey("content")) {
+                            String content = (String) messageObj.get("content");
+                            logger.info("Successfully received AI response");
+                            return content;
+                        }
+                    }
+                }
+            }
+            
+            // Handle error in response
+            if (responseBody.containsKey("error")) {
+                Map<String, Object> error = (Map<String, Object>) responseBody.get("error");
+                String errorMessage = error.containsKey("message") ? (String) error.get("message") : "Unknown error";
+                logger.error("API error: {}", errorMessage);
+                return "Error from AI service: " + errorMessage;
+            }
+            
+            logger.error("Could not extract content from response");
+            return "Could not extract a valid response from the AI service.";
+            
+        } catch (Exception e) {
+            logger.error("Error in AI service", e);
+            return "Error: " + e.getMessage();
+        }
+    }
+}

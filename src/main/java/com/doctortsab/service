@@ -1,0 +1,64 @@
+package com.doctortsab.service;
+
+import com.doctortsab.model.User;
+import com.doctortsab.model.Appointment;
+import com.doctortsab.model.SymptomCheck;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.List;
+
+public class UserService {
+    private FirebaseFirestore firestore;
+    private FirebaseAuth auth;
+
+    public UserService() {
+        this.firestore = FirebaseFirestore.getInstance();
+        this.auth = FirebaseAuth.getInstance();
+    }
+
+    public void registerUser(User user) {
+        // Logic to register user in Firestore
+    }
+
+    public User loginUser(String email, String password) {
+        // Logic to authenticate user
+        return null;
+    }
+
+    public List<User> getAllUsers() {
+        // Logic to retrieve all users
+        return null;
+    }
+}
+
+public class AppointmentService {
+    private FirebaseFirestore firestore;
+
+    public AppointmentService() {
+        this.firestore = FirebaseFirestore.getInstance();
+    }
+
+    public void bookAppointment(Appointment appointment) {
+        // Logic to book an appointment
+    }
+
+    public List<Appointment> getUserAppointments(String userId) {
+        // Logic to retrieve appointments for a user
+        return null;
+    }
+}
+
+public class SymptomCheckService {
+    public SymptomCheck checkSymptoms(String symptoms) {
+        // Logic to check symptoms using Llama 2 API
+        return null;
+    }
+}
+
+public class FirstAidService {
+    public String getFirstAidInfo(String condition) {
+        // Logic to retrieve first aid information
+        return null;
+    }
+}
